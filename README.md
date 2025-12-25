@@ -1,50 +1,112 @@
-# FLARE: Federated Learning for Anomaly Detection
+# FLARE: Federated Learning for Anomaly Detection (IoT Security)
 
-FLARE is a privacy-preserving Intrusion Detection System (IDS) for IoT networks using Federated Learning and Explainable AI.
+**FLARE** is a privacy-preserving Intrusion Detection System (IDS) that uses **Federated Learning** to train Deep Autoencoders on edge devices without sharing raw data, and **Explainable AI (SHAP)** to interpret the alerts.
 
-## Architecture
+---
 
-- **Server**: Orchestrates training rounds (Flower).
-- **Client**: Trains local Autoencoder on real traffic data (CICIDS2017) and detects anomalies.
-- **Dashboard**: Visualizes traffic, alerts, and SHAP explanations.
+## 🚀 Setup Instructions
 
-## Setup
+### 1. Prerequisites
 
-1. Install dependencies (if not already installed):
-   ```bash
-   pip install flwr torch torchvision numpy pandas matplotlib scikit-learn shap streamlit
-   ```
+- Python 3.8+
+- [Optional] CUDA-enabled GPU (PyTorch will use it if available)
 
-## Running the Application
+### 2. Clone & Environment
 
-You will need **3 separate terminal windows**.
+```bash
+# Clone the repository
+git clone https://github.com/your-username/flare.git
+cd flare
 
-### 1. Start the Federated Server
+# Create Virtual Environment
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# Linux/Mac
+source venv/bin/activate
+```
 
-The server coordinates the learning process.
+### 3. Install Dependencies
+
+```bash
+pip install torch torchvision numpy pandas scikit-learn flwr shap streamlit plotly matplotlib requests
+```
+
+### 4. Download Dataset
+
+We use the **CICIDS2017** dataset. Run the helper script to download and extract it automatically:
+
+```powershell
+$env:PYTHONPATH='.'; python download_data.py
+```
+
+_This will create a `data/traffic.csv` file._
+
+---
+
+## 🏃‍♂️ How to Run
+
+FLARE consists of 3 components that must run simultaneously. Open **3 separate terminal windows**.
+
+### Terminal 1: The Server (Aggregator)
+
+The server coordinates the Federated Learning rounds.
 
 ```powershell
 $env:PYTHONPATH='c:\proj\flare'; python src/server/server.py
 ```
 
-### 2. Start the Federated Client
+_Wait until you see "Flower server running"._
 
-The client loads local data, trains the model, and performs inference.
+### Terminal 2: The Client (Edge Device)
+
+The client loads local data, trains the model, and performs anomaly detection.
 
 ```powershell
 $env:PYTHONPATH='c:\proj\flare'; python src/client/app.py
 ```
 
-_Note: You can run multiple clients in different terminals to simulate a distributed network._
+_The client will connect to the server, download the global model, train on local data, and upload updated weights._
 
-### 3. Launch the Dashboard
+### Terminal 3: The Dashboard (Control Center)
 
-The dashboard provides a real-time view of the system's status.
+The dashboard visualizes real-time traffic, anomalies, and explanations.
 
 ```powershell
 $env:PYTHONPATH='c:\proj\flare'; python -m streamlit run dashboard/dashboard.py
 ```
 
-## Data
+_Open the URL shown (usually `http://localhost:8501`)._
 
-The system automatically uses the **CICIDS2017** dataset located in `data/traffic.csv`.
+---
+
+## 🎮 Interactive Demo Features
+
+In the Dashboard:
+
+1.  **Simulate Normal Traffic**: Click the Green button. The chart should be low/stable (Green dots).
+2.  **Simulate Web Attack**: Click the Red button. The chart will spike (Red crosses) and Alerts will trigger.
+3.  **Explainability**: Scroll down to see exactly _why_ an attack was detected (e.g., "High Flow Duration" or "Excessive SYN Flags").
+
+---
+
+## 📂 Project Structure
+
+```
+flare/
+├── src/
+│   ├── client/
+│   │   ├── model.py        # Deep Autoencoder Architecture (PyTorch)
+│   │   ├── pipeline.py     # Inference & Thresholding Logic
+│   │   ├── app.py          # Flower Client & Differential Privacy
+│   │   └── explain.py      # SHAP Explainability Wrapper
+│   ├── server/
+│   │   └── server.py       # Flower Server Strategy
+│   └── utils/
+│       ├── data_loader.py  # CICIDS2017 Data Parser
+│       └── preprocessing.py# MinMax Scaler & Data Loaders
+├── dashboard/
+│   └── dashboard.py        # Streamlit + Plotly UI
+├── data/                   # Dataset directory
+└── download_data.py        # Dataset downloader script
+```
